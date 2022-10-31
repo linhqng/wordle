@@ -1,67 +1,72 @@
 .App {
+  position: relative;
   width: 100vw;
   height: 100vh;
-  background-color: #0f172a;
-  font-family: 'ui-sans-serif';
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   box-sizing: border-box;
-}
-.button {
-  background-color: transparent; /* Green */
-  border: 2px solid #485569;
-  color: white;
-  border-radius: 4px;
-  padding: 15px 32px;
-  text-align: center;
-  text-decoration: none;
-  display: inline-block;
-  font-size: 16px;
-  margin-bottom: 40px;
+  background-color: #0f172a;
 }
 
+.controls{
+  position: absolute;
+  top: 80px;
+  text-align: center;
+}
+
+.button {
+  padding: 15px 32px;
+  display: inline-block;
+  text-align: center;
+  font-size: 18px;
+  /* border: 2px solid #485569; */
+  border-radius: 4px;
+  text-decoration: none;
+  color: #fff;
+  background-color: green;
+}
 
 .seed {
+  margin-top: 30px;
+  font-size: 16px;
   color: #fff;
-}
-
-.cell{
-  color: #fff;
-  width: 56px;
-  height:56px;
-  border-radius: 4px;
-  border: 2px solid #485569;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: transparent;
-  text-shadow: 1px 1px 1px #000;
-  font-size: 2.25rem;
-  line-height: 2.5rem;
-  font-weight: 700;
-}
-
-.absent{
-  background-color: #334155;
-  border: none;
-}
-
-.present{
-  background-color: #eab307;
-  border: none;
-}
-
-.correct{
-  background-color: #23c55e;
-  border: none;
 }
 
 .grid {
-  /* width: 300px; */
-  /* background-color: aqua; */
   display: grid;
   gap: 5px;
-  grid-template-columns: auto auto auto auto auto;
+  grid-template-columns: repeat(5, auto);
+}
+
+.cell{
+  width: 56px;
+  height:56px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 36px;
+  line-height: 40px;
+  font-weight: 700;
+  border-radius: 4px;
+  border: 2px solid #485569;
+  color: #fff;
+  background-color: transparent;
+  text-shadow: 1px 1px 1px #000;
+}
+
+.absent{
+  border: none;
+  background-color: #334155;
+}
+
+.present{
+  border: none;
+  background-color: #eab307;
+}
+
+.correct{
+  border: none;
+  background-color: #23c55e;
 }

@@ -1,62 +1,130 @@
-import { useState, useCallback } from "react";
-import "./App.css";
+import { useState, useCallback, useEffect } from "react";
 import Grid from "./components/grid/Grid";
 import { guessRandom } from "./services";
 import { WORDS } from "./constants/wordList";
+import "./App.css";
 
 function App() {
   const [seed, setSeed] = useState(null);
-  const [result, setResult] = useState(
-    Array(35).fill({ result: "", guess: "" })
+  const [result, setResult] = useState([]);
+
+  const guessRandomWord = useCallback(async (word) => {
+    const chars = await guessRandom(word);
+
+    const detectedChars = {
+      correct: [],
+      present: [],
+      absent: [],
+      chars,
+    };
+
+    return chars.reduce((detectedChars, char) => {
+      const { guess, result, slot } = char;
+      detectedChars[result].push({ guess, slot });
+      return detectedChars;
+    }, detectedChars);
+  }, []);
+
+  const isMatchSlot = (correct, word) => {
+    let isMatch = true;
+
+    correct.forEach((correctChar) => {
+      if (!isMatch) return;
+      if (word.indexOf(correctChar.guess) !== correctChar.slot) isMatch = false;
+    });
+    return isMatch;
+  };
+
+  const isIncluded = (present, word) => {
+    let isIncluded = true;
+
+    present.forEach((presentChar) => {
+      if (!isIncluded) return;
+      if (!word.includes(presentChar.guess)) isIncluded = false;
+    });
+    return isIncluded;
+  };
+
+  const isExcluded = (absent, word) => {
+    let isExcluded = true;
+
+    absent.forEach((absentChar) => {
+      if (!isExcluded) return;
+      if (word.includes(absentChar.guess)) isExcluded = false;
+    });
+    return isExcluded;
+  };
+
+  const wordListFilter = useCallback(
+    ({ correct, present, absent, previousGuess }, wordList) => {
+      return wordList
+        .filter((word) => isMatchSlot(correct, word))
+        .filter((word) => isIncluded(present, word))
+        .filter((word) => isExcluded(absent, word))
+        .filter((word) => word !== previousGuess);
+    },
+    []
   );
 
-  const guessRandomWord = useCallback(
-    async (word) => {
-      const chars = await guessRandom(word);
-      setResult([...result, ...chars]);
+  function timeout(delay) {
+    return new Promise((res) => setTimeout(res, delay));
+  }
 
-      const wordFiltered = chars.reduce(
-        (chars, char) => {
-          let [absent, present, correct] = chars;
-          const { guess, result, slot } = char;
-          if (result === "correct") {
-            correct = [...correct, { guess, slot }];
-          } else if (result === "present") {
-            present = [...present, guess];
-          } else {
-            absent = [...absent, guess];
-          }
+  const findMatchWord = useCallback(
+    async (seed, wordList, resultChars) => {
+      const guess = wordList[Math.floor(Math.random() * wordList.length)];
 
-          return [absent, present, correct];
-        },
-        [[], [], []]
+      const { correct, present, absent, chars } = await guessRandomWord({
+        seed,
+        guess,
+      });
+
+      const resultAppended = [...resultChars, ...chars];
+      setResult(resultAppended);
+
+      const wordListFiltered = await wordListFilter(
+        { correct, present, absent, previousGuess: guess },
+        wordList
       );
 
-      return wordFiltered;
+      await timeout(500);
+
+      if (
+        correct.length < 5 &&
+        wordList.length > 1 &&
+        wordListFiltered.length
+      ) {
+        findMatchWord(seed, wordListFiltered, resultAppended);
+      } else {
+        correct.length < 5 && window.alert("Can't found the word!");
+      }
     },
-    [result]
+    [guessRandomWord, wordListFilter, setResult]
   );
 
-  const handleAutoPlay = useCallback(async () => {
+  const handleAutoPlay = useCallback(() => {
     const seed = Math.floor(Math.random() * 9000 + 1000);
     setSeed(seed);
 
-    const guess = WORDS[Math.floor(Math.random() * WORDS.length)];
+    findMatchWord(seed, WORDS, []);
+  }, [findMatchWord]);
 
-    const [absentChars, presentChars, correctChars] = await guessRandomWord({
-      guess,
-      seed,
-    });
-
-    console.log({ absentChars, presentChars, correctChars });
-  }, [guessRandomWord]);
+  useEffect(() => {
+    if (result.length < 30)
+      setResult([
+        ...result,
+        ...Array(30 - result.length).fill({ result: "", guess: "" }),
+      ]);
+  }, [result]);
 
   return (
     <div className="App">
-      <button className="button" onClick={handleAutoPlay}>
-        Auto play
-      </button>
-      {seed && <p className="seed">Seed: {seed}</p>}
+      <div className="controls">
+        <button className="button" onClick={handleAutoPlay}>
+          Auto play
+        </button>
+        {seed && <p className="seed">Seed: {seed}</p>}
+      </div>
       <Grid chars={result} />
     </div>
   );
