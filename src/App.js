@@ -40,7 +40,11 @@ function App() {
 
     present.forEach((presentChar) => {
       if (!isIncluded) return;
-      if (!word.includes(presentChar.guess)) isIncluded = false;
+      if (
+        !word.includes(presentChar.guess) ||
+        word.indexOf(presentChar.guess) === presentChar.slot
+      )
+        isIncluded = false;
     });
     return isIncluded;
   };
@@ -96,7 +100,7 @@ function App() {
       ) {
         findMatchWord(seed, wordListFiltered, resultAppended);
       } else {
-        correct.length < 5 && window.alert("Can't found the word!");
+        correct.length < 5 && window.alert("Can't find the word!");
       }
     },
     [guessRandomWord, wordListFilter, setResult]
